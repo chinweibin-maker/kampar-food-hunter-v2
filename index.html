@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>金宝美食猎人 Pro - 修复版</title>
+    <title>金宝美食猎人 Pro - 微信手感版</title>
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --google: #4285F4; --success: #2ecc71; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; touch-action: manipulation; }
         .container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; }
         #dbStatus { font-size: 0.7rem; color: var(--success); margin-bottom: 10px; font-weight: bold; }
         .filter-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
@@ -21,7 +21,7 @@
         .map-link { flex: 1; padding: 12px; background: var(--google); color: white !important; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
         .history-section { margin-top: 25px; text-align: left; border-top: 1px solid #f1f2f6; padding-top: 15px; }
         .history-item { font-size: 0.8rem; padding: 6px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
-        .shake-hint { font-size: 0.65rem; color: #bdc3c7; margin-top: 10px; }
+        .shake-hint { font-size: 0.65rem; color: #bdc3c7; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -36,11 +36,11 @@
         <button class="filter-btn" onclick="setFilter('Westlake', this)">宿舍区</button>
     </div>
     <div class="display-box">
-        <div id="foodName">Ready?</div>
-        <div id="foodTip">初次使用请先点按钮激活授权</div>
+        <div id="foodName">来摇一摇吧！</div>
+        <div id="foodTip">初次使用请点按钮授权，随后像微信一样用力摇手机</div>
     </div>
     <button class="main-btn" id="pickBtn" onclick="handleMainClick()" disabled>帮我决定！</button>
-    <div class="shake-hint">📱 摇晃手机触发 (仅限授权后)</div>
+    <div class="shake-hint">用力甩动手机触发抽奖</div>
     <div class="history-section">
         <ul id="historyList" style="list-style:none; padding:0; margin:0;"><li class="history-item">暂无记录</li></ul>
     </div>
@@ -49,8 +49,9 @@
 <script>
     let allFoods = [];
     let filteredFoods = [];
-    let isRolling = false; // 🔒 核心锁
+    let isRolling = false;
     let hasShakingPermission = false;
+    let lastShakeTime = 0; // 冷却计时器
 
     const rollSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
     const winSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
@@ -74,9 +75,9 @@
     }
 
     async function handleMainClick() {
-        if (isRolling) return; // 正在转的时候点击无效
+        if (isRolling) return;
         
-        // 授权逻辑
+        // 授权请求
         if (!hasShakingPermission && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
             try {
                 const permission = await DeviceMotionEvent.requestPermission();
@@ -84,7 +85,7 @@
                     hasShakingPermission = true;
                     initShakeListener();
                 }
-            } catch (e) { alert("授权失败"); }
+            } catch (e) { alert("授权被拒绝"); }
         } else if (!hasShakingPermission) {
             initShakeListener();
             hasShakingPermission = true;
@@ -93,44 +94,48 @@
     }
 
     function initShakeListener() {
-        let lastUpdate = 0;
-        let lastX, lastY, lastZ;
-        let threshold = 25; // 🚀 提高阈值，防止误触发
+        let lastX = null, lastY = null, lastZ = null;
+        const SHAKE_THRESHOLD = 65; // 🚀 关键：提高阈值到 65，模仿微信力度
 
-        window.addEventListener('devicemotion', (e) => {
-            if (isRolling) return; // 🔒 关键：如果正在转动，直接无视传感器的信号
+        window.addEventListener('devicemotion', (event) => {
+            if (isRolling) return; // 正在转动中，无视信号
 
-            let curTime = Date.now();
-            if ((curTime - lastUpdate) > 100) {
-                let diffTime = curTime - lastUpdate;
-                lastUpdate = curTime;
-                let acc = e.accelerationIncludingGravity;
-                if(!acc || !acc.x) return;
-                
-                let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diffTime * 10000;
-                if (speed > threshold) {
-                    startRolling();
-                }
-                lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+            let currentTime = Date.now();
+            if ((currentTime - lastShakeTime) < 2000) return; // 🚀 冷却期：2秒内不重复触发
+
+            let acceleration = event.accelerationIncludingGravity;
+            if (!acceleration.x) return;
+
+            let deltaX = Math.abs(lastX - acceleration.x);
+            let deltaY = Math.abs(lastY - acceleration.y);
+            let deltaZ = Math.abs(lastZ - acceleration.z);
+
+            // 微信逻辑：判断瞬时爆发力
+            if (lastX !== null && (deltaX + deltaY + deltaZ) > SHAKE_THRESHOLD) {
+                lastShakeTime = currentTime; // 记录触发时间
+                startRolling();
             }
+
+            lastX = acceleration.x;
+            lastY = acceleration.y;
+            lastZ = acceleration.z;
         });
     }
 
     function startRolling() {
         if (isRolling) return;
-        isRolling = true; // 🔒 开启锁定
+        isRolling = true;
         
         const btn = document.getElementById('pickBtn');
         const nameEl = document.getElementById('foodName');
         const tipEl = document.getElementById('foodTip');
         
         btn.disabled = true;
-        btn.innerText = "挑选中心跳中...";
-        tipEl.innerHTML = "正在全城搜索...";
-
+        btn.innerText = "正在疯狂挑选...";
+        
         let speed = 60; 
         let times = 0;
-        let maxTimes = 25 + Math.floor(Math.random() * 10);
+        let maxTimes = 20 + Math.floor(Math.random() * 10);
 
         function roll() {
             const rand = filteredFoods[Math.floor(Math.random() * filteredFoods.length)];
@@ -139,7 +144,7 @@
             times++;
 
             if (times < maxTimes) {
-                if (times > maxTimes - 8) speed += 60; 
+                if (times > maxTimes - 8) speed += 70; // 🚀 减速感更强
                 setTimeout(roll, speed);
             } else {
                 finishRoll(rand);
@@ -155,7 +160,7 @@
         const btn = document.getElementById('pickBtn');
 
         nameEl.innerText = final.name;
-        const mapUrl = `http://googleusercontent.com/maps.google.com/9{encodeURIComponent(final.name + " Kampar")}`;
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
 
         tipEl.innerHTML = `
             <div>💡 ${final.tip}</div>
@@ -166,10 +171,10 @@
 
         saveToHistory(final.name);
         btn.disabled = false;
-        btn.innerText = "再抽一次";
+        btn.innerText = "再摇一次";
         
-        // 延迟一秒解锁，防止抽完奖瞬间因为手抖又触发一次
-        setTimeout(() => { isRolling = false; }, 1000); 
+        // 增加延时锁，确保状态平稳
+        setTimeout(() => { isRolling = false; }, 1500); 
     }
 
     function setFilter(tag, btn) {
@@ -177,7 +182,7 @@
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         filteredFoods = tag === '全部' ? [...allFoods] : allFoods.filter(f => f.name.includes(tag));
-        document.getElementById('foodTip').innerText = `已切换：${tag} (${filteredFoods.length} 家)`;
+        document.getElementById('foodTip').innerText = `已选：${tag}`;
     }
 
     function saveToHistory(name) {
