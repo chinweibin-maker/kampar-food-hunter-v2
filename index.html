@@ -1,68 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金宝美食猎人 Pro - 1000家店版</title>
+    <style>
+        :root {
+            --primary: #ff4757;
+            --secondary: #2f3542;
+            --bg: #f1f2f6;
+        }
+        body { 
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background: var(--bg); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+        .container { 
+            background: white; 
+            width: 90%; 
+            max-width: 450px; 
+            padding: 30px; 
+            border-radius: 25px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
+            text-align: center; 
+        }
+        h1 { color: var(--secondary); margin-bottom: 5px; font-size: 1.8rem; }
+        .subtitle { color: #a1a1a1; font-size: 0.9rem; margin-bottom: 30px; }
+        
+        /* 显示结果的卡片 */
+        .display-card { 
+            height: 200px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            background: #fffafa;
+            border-radius: 15px;
+            border: 2px solid #fff0f0;
+            margin-bottom: 25px; 
+        }
+        #foodName { 
+            font-size: 2.2rem; 
+            font-weight: 800; 
+            color: var(--primary); 
+            margin: 0; 
+            transition: 0.2s; 
+        }
+        #foodTip { 
+            color: #747d8c; 
+            font-size: 1rem; 
+            margin-top: 15px; 
+            padding: 0 20px;
+            line-height: 1.4;
+        }
+
+        /* 数据库状态显示 */
+        .status-bar {
+            font-size: 0.85rem;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        /* 交互按钮 */
+        .main-btn { 
+            width: 100%; 
+            padding: 18px; 
+            border: none; 
+            border-radius: 15px; 
+            background: var(--primary); 
+            color: white; 
+            font-size: 1.3rem; 
+            font-weight: bold; 
+            cursor: pointer; 
+            box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3); 
+            transition: 0.3s; 
+        }
+        .main-btn:hover { background: #ff6b81; transform: translateY(-2px); }
+        .main-btn:active { transform: scale(0.95); }
+        .main-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        .footer { margin-top: 20px; font-size: 0.75rem; color: #ced4da; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🍜 Kampar Hunter</h1>
+    <p class="subtitle">金宝 1000+ 美食实时决策系统</p>
+
+    <div class="status-bar" id="dbStatus">正在连接 GitHub 数据库...</div>
+
+    <div class="display-card">
+        <div id="foodName">准备好了吗？</div>
+        <div id="foodTip">正在为您加载金宝美食地图...</div>
+    </div>
+
+    <button class="main-btn" id="pickBtn" onclick="startRolling()" disabled>帮我决定！</button>
+    
+    <div class="footer">UTAR BIS Student Project • 2026 Edition</div>
+</div>
+
 <script>
-let foods = []; 
+    let foods = []; 
 
-// 🌟 1. 记得把这里的 [用户名] 和 [仓库名] 换成你真实的 GitHub 信息
-// 修改这一行，加上时间戳
-const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + new Date().getTime();
+    // 🌟 核心：指向你的 GitHub Raw 地址
+    const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + new Date().getTime(); 
 
-async function loadDatabase() { 
-    try { 
-        console.log("正在尝试连接数据库...");
-        const response = await fetch(dataUrl); 
-        
-        if (!response.ok) {
-            throw new Error(`服务器响应错误: ${response.status}`);
-        }
+    async function loadDatabase() { 
+        try { 
+            console.log("正在尝试连接数据库...");
+            const response = await fetch(dataUrl); 
+            
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status}`);
+            }
 
-        const realFoods = await response.json(); 
-        
-        // 自动补齐逻辑...
-        let fakeFoods = [];
-        for (let i = realFoods.length + 1; i <= 1000; i++) {
-            fakeFoods.push({
-                "name": `金宝隐藏美食 #${i}`,
-                "tip": `探索第 ${i} 号神秘美食！`
-            });
-        }
-        foods = realFoods.concat(fakeFoods); 
-        document.getElementById('dbStatus').innerText = `✅ 数据库就绪 (${foods.length} 家店)`; 
-        console.log("数据库加载成功！");
+            // 获取你在 GitHub 写的真实数据
+            const realFoods = await response.json(); 
+            
+            // 自动补齐逻辑 (至 1000 条)
+            let fakeFoods = [];
+            for (let i = realFoods.length + 1; i <= 1000; i++) {
+                fakeFoods.push({
+                    "name": `金宝隐藏美食 #${i}`,
+                    "tip": `系统发掘的第 ${i} 号神秘店面，去探索一下吧！`
+                });
+            }
 
-    } catch (error) { 
-        console.error("加载失败原因:", error); 
-        document.getElementById('dbStatus').innerText = `❌ 同步失败: ${error.message}`; 
-    } 
-}
+            foods = realFoods.concat(fakeFoods); 
+            
+            // 加载成功后的 UI 变化
+            document.getElementById('dbStatus').innerText = `✅ 数据库就绪 (${foods.length} 家店)`; 
+            document.getElementById('foodTip').innerText = "加载完成！点击按钮开始抽奖。";
+            document.getElementById('pickBtn').disabled = false;
+            console.log("数据库加载成功！");
 
-// 页面加载时自动运行 
-loadDatabase(); 
-
-function startRolling() { 
-    if (foods.length === 0) return alert("数据库还在加载中..."); 
-    
-    const nameEl = document.getElementById('foodName'); 
-    const tipEl = document.getElementById('foodTip'); 
-    const btn = document.getElementById('pickBtn'); 
-
-    btn.disabled = true; 
-    let count = 0; 
-    
-    // 🌟 5. 抽奖动画：在 1000 条数据里快速滚动
-    const timer = setInterval(() => { 
-        const randomTemp = foods[Math.floor(Math.random() * foods.length)]; 
-        nameEl.innerText = randomTemp.name; 
-        count++; 
-
-        if (count > 20) { // 稍微增加一点滚动次数，让 1000 条看起来更震撼
-            clearInterval(timer); 
-            const final = foods[Math.floor(Math.random() * foods.length)]; 
-            nameEl.innerText = final.name; 
-            tipEl.innerText = "💡 " + final.tip; 
-            btn.disabled = false; 
-        } 
-    }, 60); // 滚动速度加快，更有抽奖感
-}
-</script>
-
-</body>
-</html>
+        } catch (error) { 
+            console.error("加载失败
