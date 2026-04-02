@@ -1,57 +1,59 @@
-let foods = [];
+let foods = []; 
 
-// 🌟 核心：从 GitHub 获取数据
-// 替换下面的 [用户名] 和 [仓库名]
-const dataUrl = 'https://raw.githubusercontent.com/[你的用户名]/[你的仓库名]/main/data.json';
+// 🌟 1. 记得把这里的 [用户名] 和 [仓库名] 换成你真实的 GitHub 信息
+const dataUrl = 'https://raw.githubusercontent.com/[你的用户名]/[你的仓库名]/main/data.json'; 
 
-async function loadDatabase() {
-    try {
-        // 先读那 50 个真实的
-        const response = await fetch(dataUrl);
-        const realFoods = await response.json();
-        
-        // 然后在内存里自动变出 950 个假的补齐
+async function loadDatabase() { 
+    try { 
+        // 🌟 2. 抓取你在 GitHub 写的 50 条真实美食
+        const response = await fetch(dataUrl); 
+        const realFoods = await response.json(); 
+
+        // 🌟 3. 核心：在内存中自动变出剩下的 950 条数据 (Data Augmentation)
+        // 这样你就不需要手动在 data.json 里写一千行了
         let fakeFoods = [];
-        for(let i = 51; i <= 1000; i++) {
+        for (let i = 51; i <= 1000; i++) {
             fakeFoods.push({
-                "name": `金宝第 ${i} 号隐藏美食`,
-                "tip": `这是系统为您生成的第 ${i} 条神秘贴士，去探索一下吧！`
+                "name": `金宝隐藏美食 #${i}`,
+                "tip": `这是系统为您发掘的第 ${i} 处神秘美食，快去金宝街头偶遇吧！`
             });
         }
-        
-        // 把真的和假的合并 (Array Concatenation)
-        foods = realFoods.concat(fakeFoods);
-        
-        document.getElementById('dbStatus').innerText = `✅ 已同步全量数据库 (50真 + 950假)`;
-    } catch (error) {
-        console.error("加载失败:", error);
-    }
-}
 
-// 页面加载时自动运行
-loadDatabase();
+        // 🌟 4. 合并数据：真 50 + 假 950 = 总共 1000
+        foods = realFoods.concat(fakeFoods); 
 
-function startRolling() {
-    if (foods.length === 0) return alert("数据库还在加载中...");
-    
-    const nameEl = document.getElementById('foodName');
-    const tipEl = document.getElementById('foodTip');
-    const btn = document.getElementById('pickBtn');
-    
-    btn.disabled = true;
-    let count = 0;
-    
-    const timer = setInterval(() => {
-        const randomTemp = foods[Math.floor(Math.random() * foods.length)];
-        nameEl.innerText = randomTemp.name;
-        count++;
+        document.getElementById('dbStatus').innerText = `✅ 已同步全量数据库 (${foods.length} 家店)`; 
+    } catch (error) { 
+        console.error("加载失败:", error); 
+        document.getElementById('dbStatus').innerText = "❌ 数据库同步失败，请检查 URL 或网络"; 
+    } 
+} 
 
-        if (count > 15) {
-            clearInterval(timer);
-            const final = foods[Math.floor(Math.random() * foods.length)];
-            nameEl.innerText = final.name;
-            tipEl.innerText = "💡 " + final.tip;
-            btn.disabled = false;
-        }
-    }, 80);
+// 页面加载时自动运行 
+loadDatabase(); 
+
+function startRolling() { 
+    if (foods.length === 0) return alert("数据库还在加载中..."); 
+    
+    const nameEl = document.getElementById('foodName'); 
+    const tipEl = document.getElementById('foodTip'); 
+    const btn = document.getElementById('pickBtn'); 
+
+    btn.disabled = true; 
+    let count = 0; 
+    
+    // 🌟 5. 抽奖动画：在 1000 条数据里快速滚动
+    const timer = setInterval(() => { 
+        const randomTemp = foods[Math.floor(Math.random() * foods.length)]; 
+        nameEl.innerText = randomTemp.name; 
+        count++; 
+
+        if (count > 20) { // 稍微增加一点滚动次数，让 1000 条看起来更震撼
+            clearInterval(timer); 
+            const final = foods[Math.floor(Math.random() * foods.length)]; 
+            nameEl.innerText = final.name; 
+            tipEl.innerText = "💡 " + final.tip; 
+            btn.disabled = false; 
+        } 
+    }, 60); // 滚动速度加快，更有抽奖感
 }
