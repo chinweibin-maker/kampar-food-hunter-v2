@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>金宝美食猎人 Pro - 旗舰版</title>
+    <title>金宝美食猎人 Pro - 至尊版</title>
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --google: #4285F4; --success: #2ecc71; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .container { background: white; padding: 30px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
         
         /* 状态与标题 */
@@ -14,41 +14,42 @@
         #dbStatus { font-size: 0.75rem; color: var(--success); margin-bottom: 20px; font-weight: bold; }
         
         /* 分类筛选器 */
-        .filter-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
-        .filter-btn { padding: 6px 12px; border: 1.5px solid #ddd; background: white; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
+        .filter-group { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 15px; border: 1.5px solid #ddd; background: white; border-radius: 20px; cursor: pointer; font-size: 0.8rem; transition: 0.3s; }
         .filter-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
         /* 显示区域 */
-        .display-box { background: #fffafa; border: 2px dashed #ffeaea; border-radius: 15px; padding: 20px; margin-bottom: 25px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
-        #foodName { font-size: 1.8rem; color: var(--primary); font-weight: 800; margin: 0 0 10px 0; min-height: 2.2rem; }
-        #foodTip { color: #747d8c; font-size: 0.9rem; min-height: 3rem; }
+        .display-box { background: #fffafa; border: 2px dashed #ffeaea; border-radius: 15px; padding: 20px; margin-bottom: 25px; min-height: 200px; display: flex; flex-direction: column; justify-content: center; }
+        #foodName { font-size: 1.8rem; color: var(--primary); font-weight: 800; margin: 0 0 10px 0; min-height: 2.5rem; }
+        #foodTip { color: #747d8c; font-size: 0.9rem; min-height: 3.5rem; line-height: 1.4; }
 
-        /* 按钮 */
+        /* 按钮样式 */
         .main-btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: 0.3s; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3); }
         .main-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
         
-        .map-link { display: inline-block; margin-top: 15px; padding: 10px 20px; background: var(--google); color: white !important; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.2); transition: 0.3s; }
-        .map-link:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(66, 133, 244, 0.3); }
+        .map-link { display: inline-block; margin-top: 15px; padding: 12px 25px; background: var(--google); color: white !important; border-radius: 50px; text-decoration: none; font-weight: bold; font-size: 0.9rem; box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3); transition: 0.3s; }
+        .map-link:hover { transform: translateY(-2px); background: #357ae8; }
 
         /* 历史记录足迹 */
         .history-section { margin-top: 30px; text-align: left; border-top: 1px solid #eee; padding-top: 15px; }
         .history-title { font-size: 0.85rem; color: #a1a1a1; margin-bottom: 10px; font-weight: bold; }
         .history-list { list-style: none; padding: 0; margin: 0; }
-        .history-item { font-size: 0.8rem; padding: 5px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
-        .history-tag { font-size: 0.7rem; background: #eee; padding: 2px 6px; border-radius: 4px; }
+        .history-item { font-size: 0.8rem; padding: 8px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; align-items: center; }
+        .history-tag { font-size: 0.7rem; background: #f1f2f6; padding: 2px 8px; border-radius: 4px; color: #999; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🍜 Kampar Hunter</h1>
-    <div id="dbStatus">正在同步 1000+ 数据...</div>
+    <div id="dbStatus">正在加载千条美食数据...</div>
 
     <div class="filter-group">
         <button class="filter-btn active" onclick="setFilter('全部', this)">全部</button>
         <button class="filter-btn" onclick="setFilter('老街', this)">老街</button>
         <button class="filter-btn" onclick="setFilter('新街', this)">新街</button>
         <button class="filter-btn" onclick="setFilter('Westlake', this)">宿舍区</button>
+        <button class="filter-btn" onclick="setFilter('韩式', this)">韩式/日式</button>
     </div>
 
     <div class="display-box">
@@ -71,14 +72,21 @@
     let filteredFoods = [];
     let currentFilter = '全部';
 
-    // 1. 初始化数据库
+    // 🎵 音效资源 (Mixkit 公开资源)
+    const rollSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+    const winSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
+    rollSfx.volume = 0.2;
+    winSfx.volume = 0.4;
+
+    // 1. 初始化并加载 GitHub 数据
     async function init() {
         const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + Date.now();
         try {
             const resp = await fetch(dataUrl);
+            if (!resp.ok) throw new Error("Network Error");
             const realData = await resp.json();
             
-            // 自动补齐至 1000 条逻辑 (保留功能)
+            // 自动补齐 1000 条逻辑
             let fake = [];
             for (let i = realData.length + 1; i <= 1000; i++) {
                 fake.push({ "name": `金宝隐藏美食 #${i}`, "tip": `探索第 ${i} 号神秘美食！` });
@@ -86,15 +94,16 @@
             allFoods = realData.concat(fake);
             filteredFoods = [...allFoods];
             
-            document.getElementById('dbStatus').innerText = `✅ 1000+ 数据库已就绪`;
+            document.getElementById('dbStatus').innerText = `✅ 数据库就绪 (1000+ 店家)`;
             document.getElementById('pickBtn').disabled = false;
             updateHistoryUI();
         } catch (e) {
-            document.getElementById('dbStatus').innerText = `❌ 加载失败`;
+            document.getElementById('dbStatus').innerText = `❌ 加载失败，请检查网络`;
+            document.getElementById('foodTip').innerText = "提示：请确保 GitHub 上的 data.json 格式正确。";
         }
     }
 
-    // 2. 分类筛选逻辑 (Category Filter)
+    // 2. 筛选功能
     function setFilter(tag, btn) {
         currentFilter = tag;
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -103,62 +112,75 @@
         if (tag === '全部') {
             filteredFoods = [...allFoods];
         } else {
-            filteredFoods = allFoods.filter(f => f.name.includes(tag));
+            // 根据名字里是否包含关键字筛选
+            filteredFoods = allFoods.filter(f => f.name.includes(tag) || (f.tip && f.tip.includes(tag)));
         }
-        document.getElementById('foodTip').innerText = `已筛选: ${tag} 区域 (共 ${filteredFoods.length} 家)`;
+        document.getElementById('foodTip').innerText = `已锁定 ${tag} 类别，共有 ${filteredFoods.length} 个选择`;
     }
 
-    // 3. 老虎机减速动效 (Slot Machine Easing)
+    // 3. 核心滚动逻辑 (老虎机减速效果)
     function startRolling() {
         const btn = document.getElementById('pickBtn');
         const nameEl = document.getElementById('foodName');
         const tipEl = document.getElementById('foodTip');
         
         btn.disabled = true;
-        let speed = 50; // 起始速度
+        btn.innerText = "正在搜寻美食...";
+        
+        let speed = 50; 
         let times = 0;
-        let maxTimes = 30 + Math.floor(Math.random() * 10);
+        let maxTimes = 30 + Math.floor(Math.random() * 10); // 随机滚动次数
 
         function roll() {
             const rand = filteredFoods[Math.floor(Math.random() * filteredFoods.length)];
             nameEl.innerText = rand.name;
-            times++;
+            
+            // 播放滴答声
+            rollSfx.currentTime = 0;
+            rollSfx.play().catch(()=>{});
 
+            times++;
             if (times < maxTimes) {
-                // 逐渐减速逻辑
-                if (times > maxTimes - 10) speed += 30; 
+                // 最后阶段逐渐减慢速度
+                if (times > maxTimes - 10) speed += 40; 
                 setTimeout(roll, speed);
             } else {
+                // 停止并显示结果
+                winSfx.play().catch(()=>{});
                 finishRoll(rand);
             }
         }
         roll();
     }
 
-    // 4. 结束滚动并处理足迹与导航
+    // 4. 显示最终结果与导航
     function finishRoll(final) {
         const nameEl = document.getElementById('foodName');
         const tipEl = document.getElementById('foodTip');
         const btn = document.getElementById('pickBtn');
 
         nameEl.innerText = final.name;
-        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
+        
+        // Google Maps 官方 API 格式，修复 404 隐患
+        const mapSearch = encodeURIComponent(final.name + " Kampar");
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearch}`;
 
         tipEl.innerHTML = `
             <div>💡 ${final.tip}</div>
-            <a href="${mapUrl}" target="_blank" class="map-link">📍 开启 Google Maps 导航</a>
+            <a href="${mapUrl}" target="_blank" class="map-link">📍 开启导航 (Google Maps)</a>
         `;
 
         saveToHistory(final.name);
         btn.disabled = false;
-        btn.innerText = "再抽一次";
+        btn.innerText = "换一家试试";
     }
 
-    // 5. 历史记录逻辑 (LocalStorage)
+    // 5. 本地历史记录
     function saveToHistory(name) {
         let history = JSON.parse(localStorage.getItem('kampar_history') || '[]');
-        history.unshift({ name, time: new Date().toLocaleTimeString() });
-        history = history.slice(0, 3); // 只保留最近3条
+        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        history.unshift({ name, time });
+        history = history.slice(0, 3); // 只存最近3个
         localStorage.setItem('kampar_history', JSON.stringify(history));
         updateHistoryUI();
     }
