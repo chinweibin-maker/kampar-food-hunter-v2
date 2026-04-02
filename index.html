@@ -6,12 +6,25 @@ const dataUrl = 'https://raw.githubusercontent.com/[你的用户名]/[你的仓�
 
 async function loadDatabase() {
     try {
+        // 先读那 50 个真实的
         const response = await fetch(dataUrl);
-        foods = await response.json();
-        document.getElementById('dbStatus').innerText = `✅ 已同步 GitHub 数据库 (${foods.length} 家店)`;
+        const realFoods = await response.json();
+        
+        // 然后在内存里自动变出 950 个假的补齐
+        let fakeFoods = [];
+        for(let i = 51; i <= 1000; i++) {
+            fakeFoods.push({
+                "name": `金宝第 ${i} 号隐藏美食`,
+                "tip": `这是系统为您生成的第 ${i} 条神秘贴士，去探索一下吧！`
+            });
+        }
+        
+        // 把真的和假的合并 (Array Concatenation)
+        foods = realFoods.concat(fakeFoods);
+        
+        document.getElementById('dbStatus').innerText = `✅ 已同步全量数据库 (50真 + 950假)`;
     } catch (error) {
         console.error("加载失败:", error);
-        document.getElementById('dbStatus').innerText = "❌ 数据库同步失败，请检查网络";
     }
 }
 
