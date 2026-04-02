@@ -9,45 +9,40 @@
     
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --google: #4285F4; --success: #2ecc71; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; overflow-x: hidden; }
-        .container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; position: relative; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; overflow: hidden; }
+        .container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; }
         
-        h1 { color: var(--secondary); margin: 0; font-size: 1.6rem; letter-spacing: -1px; }
-        #dbStatus { font-size: 0.7rem; color: var(--success); margin-bottom: 15px; font-weight: bold; }
+        #dbStatus { font-size: 0.7rem; color: var(--success); margin-bottom: 10px; font-weight: bold; }
         
-        /* 分类筛选 */
-        .filter-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+        /* 分类筛选器 */
+        .filter-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-btn { padding: 6px 12px; border: 1px solid #eee; background: #f8f9fa; border-radius: 15px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
         .filter-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
 
         /* 展示核心 */
-        .display-box { background: linear-gradient(145deg, #fffafa, #fff); border: 2px solid #fff0f0; border-radius: 20px; padding: 20px; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; position: relative; }
-        #foodName { font-size: 1.8rem; color: var(--primary); font-weight: 900; margin-bottom: 10px; min-height: 2.2rem; }
+        .display-box { background: #fffafa; border: 2px dashed #ffeaea; border-radius: 20px; padding: 20px; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
+        #foodName { font-size: 1.8rem; color: var(--primary); font-weight: 900; margin-bottom: 10px; }
         #foodTip { color: #747d8c; font-size: 0.85rem; min-height: 3rem; line-height: 1.4; }
 
-        /* 交互按钮 */
-        .main-btn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; cursor: pointer; font-size: 1.2rem; font-weight: bold; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3); transition: 0.3s; -webkit-tap-highlight-color: transparent; }
-        .main-btn:active { transform: scale(0.96); box-shadow: 0 4px 10px rgba(255, 71, 87, 0.2); }
-        .main-btn:disabled { background: #dcdde1; box-shadow: none; }
-
-        .action-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .map-link { flex: 1; padding: 12px; background: var(--google); color: white !important; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        /* 按钮与动作 */
+        .main-btn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; cursor: pointer; font-size: 1.2rem; font-weight: bold; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3); transition: 0.3s; }
+        .main-btn:disabled { background: #ccc; box-shadow: none; }
         
-        /* 摇一摇提示 */
-        .shake-hint { font-size: 0.65rem; color: #ced4da; margin-top: 10px; }
-
+        .action-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
+        .map-link { flex: 1; padding: 12px; background: var(--google); color: white !important; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
+        
         /* 历史记录 */
         .history-section { margin-top: 25px; text-align: left; border-top: 1px solid #f1f2f6; padding-top: 15px; }
-        .history-title { font-size: 0.75rem; color: #a1a1a1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
-        .history-item { font-size: 0.8rem; padding: 8px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
-        .history-tag { color: #bdc3c7; font-size: 0.7rem; }
+        .history-title { font-size: 0.75rem; color: #a1a1a1; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
+        .history-item { font-size: 0.8rem; padding: 6px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
+        .shake-hint { font-size: 0.65rem; color: #bdc3c7; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div id="dbStatus">正在加载千条美食...</div>
     <h1>🍜 Kampar Hunter</h1>
-    <div id="dbStatus">同步云端数据中...</div>
 
     <div class="filter-group">
         <button class="filter-btn active" onclick="setFilter('全部', this)">全部</button>
@@ -58,16 +53,16 @@
 
     <div class="display-box">
         <div id="foodName">Ready?</div>
-        <div id="foodTip">摇一摇手机或点击下方开始</div>
+        <div id="foodTip">首次点击按钮将激活“摇一摇”</div>
     </div>
 
-    <button class="main-btn" id="pickBtn" onclick="startRolling()" disabled>帮我决定！</button>
-    <div class="shake-hint">📱 支持手机摇一摇抽奖</div>
+    <button class="main-btn" id="pickBtn" onclick="handleMainClick()" disabled>帮我决定！</button>
+    <div class="shake-hint">📱 支持 iOS/Android 摇一摇抽奖</div>
 
     <div class="history-section">
         <div class="history-title">🕒 Recent Footprints</div>
         <ul id="historyList" style="list-style:none; padding:0; margin:0;">
-            <li class="history-item">等待首抽...</li>
+            <li class="history-item">暂无记录</li>
         </ul>
     </div>
 </div>
@@ -76,18 +71,20 @@
     let allFoods = [];
     let filteredFoods = [];
     let isRolling = false;
+    let hasShakingPermission = false;
 
-    // 音效
+    // 🎵 音效
     const rollSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
     const winSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
     rollSfx.volume = 0.2; winSfx.volume = 0.4;
 
-    // 1. 初始化
+    // 1. 初始化数据库
     async function init() {
         const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + Date.now();
         try {
             const resp = await fetch(dataUrl);
             const realData = await resp.json();
+            // 补齐 1000 条
             let fake = [];
             for (let i = realData.length + 1; i <= 1000; i++) {
                 fake.push({ "name": `金宝隐藏美食 #${i}`, "tip": `探索第 ${i} 号神秘店面！` });
@@ -97,46 +94,54 @@
             document.getElementById('dbStatus').innerText = `✅ 1000+ 离线数据库就绪`;
             document.getElementById('pickBtn').disabled = false;
             updateHistoryUI();
-            initShake(); // 开启摇一摇
         } catch (e) {
-            document.getElementById('dbStatus').innerText = `⚠️ 离线模式运行中`;
+            document.getElementById('dbStatus').innerText = `⚠️ 离线运行中`;
         }
     }
 
-    // 2. 筛选
-    function setFilter(tag, btn) {
-        if (isRolling) return;
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        filteredFoods = tag === '全部' ? [...allFoods] : allFoods.filter(f => f.name.includes(tag));
-        document.getElementById('foodTip').innerText = `目标：${tag} 区域 (${filteredFoods.length} 家)`;
+    // 2. 按钮主逻辑（包含 iOS 授权）
+    async function handleMainClick() {
+        // 🍎 iOS 13+ 传感器授权请求
+        if (!hasShakingPermission && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            try {
+                const permission = await DeviceMotionEvent.requestPermission();
+                if (permission === 'granted') {
+                    hasShakingPermission = true;
+                    initShakeListener();
+                }
+            } catch (e) { console.error("Permission denied"); }
+        } else if (!hasShakingPermission) {
+            initShakeListener(); // 安卓直接尝试开启
+            hasShakingPermission = true;
+        }
+
+        startRolling();
     }
 
-    // 3. 摇一摇逻辑 (BIS 技术点：陀螺仪事件)
-    function initShake() {
+    // 3. 摇一摇监听
+    function initShakeListener() {
         let lastUpdate = 0;
         let lastX, lastY, lastZ;
-        let threshold = 15; 
+        let threshold = 15;
 
-        if (window.DeviceMotionEvent) {
-            window.addEventListener('devicemotion', (e) => {
-                let curTime = Date.now();
-                if ((curTime - lastUpdate) > 100) {
-                    let diffTime = curTime - lastUpdate;
-                    lastUpdate = curTime;
-                    let acc = e.accelerationIncludingGravity;
-                    let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diffTime * 10000;
+        window.addEventListener('devicemotion', (e) => {
+            let curTime = Date.now();
+            if ((curTime - lastUpdate) > 100) {
+                let diffTime = curTime - lastUpdate;
+                lastUpdate = curTime;
+                let acc = e.accelerationIncludingGravity;
+                if(!acc.x) return;
+                let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diffTime * 10000;
 
-                    if (speed > threshold && !isRolling && !document.getElementById('pickBtn').disabled) {
-                        startRolling();
-                    }
-                    lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+                if (speed > threshold && !isRolling && !document.getElementById('pickBtn').disabled) {
+                    startRolling();
                 }
-            }, false);
-        }
+                lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+            }
+        });
     }
 
-    // 4. 老虎机减速逻辑
+    // 4. 核心滚动逻辑
     function startRolling() {
         if (isRolling) return;
         isRolling = true;
@@ -172,12 +177,13 @@
         const btn = document.getElementById('pickBtn');
 
         nameEl.innerText = final.name;
+        // 修正后的 Google Maps 链接，避免 404
         const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
 
         tipEl.innerHTML = `
             <div>💡 ${final.tip}</div>
             <div class="action-group">
-                <a href="${mapUrl}" target="_blank" class="map-link">📍 导航</a>
+                <a href="${mapUrl}" target="_blank" class="map-link">📍 导航 (Google Maps)</a>
             </div>
         `;
 
@@ -187,17 +193,25 @@
         btn.innerText = "再摇一次";
     }
 
+    function setFilter(tag, btn) {
+        if (isRolling) return;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filteredFoods = tag === '全部' ? [...allFoods] : allFoods.filter(f => f.name.includes(tag));
+        document.getElementById('foodTip').innerText = `已切换至：${tag} (${filteredFoods.length} 家)`;
+    }
+
     function saveToHistory(name) {
-        let history = JSON.parse(localStorage.getItem('k_h') || '[]');
-        history.unshift({ n: name, t: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
-        localStorage.setItem('k_h', JSON.stringify(history.slice(0, 3)));
+        let h = JSON.parse(localStorage.getItem('k_h') || '[]');
+        h.unshift({ n: name, t: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) });
+        localStorage.setItem('k_h', JSON.stringify(h.slice(0, 3)));
         updateHistoryUI();
     }
 
     function updateHistoryUI() {
         const h = JSON.parse(localStorage.getItem('k_h') || '[]');
         document.getElementById('historyList').innerHTML = h.map(i => `
-            <li class="history-item"><span>${i.n}</span><span class="history-tag">${i.t}</span></li>
+            <li class="history-item"><span>${i.n}</span><span style="color:#bdc3c7;font-size:0.7rem">${i.t}</span></li>
         `).join('') || '<li class="history-item">暂无记录</li>';
     }
 
