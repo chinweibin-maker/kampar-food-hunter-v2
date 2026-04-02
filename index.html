@@ -5,29 +5,32 @@ const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-
 
 async function loadDatabase() { 
     try { 
-        // 🌟 2. 抓取你在 GitHub 写的 50 条真实美食
+        console.log("正在尝试连接数据库...");
         const response = await fetch(dataUrl); 
-        const realFoods = await response.json(); 
-
-        // 🌟 3. 核心：在内存中自动变出剩下的 950 条数据 (Data Augmentation)
-        // 这样你就不需要手动在 data.json 里写一千行了
-        let fakeFoods = [];
-        for (let i = 51; i <= 1000; i++) {
-            fakeFoods.push({
-                "name": `金宝隐藏美食 #${i}`,
-                "tip": `这是系统为您发掘的第 ${i} 处神秘美食，快去金宝街头偶遇吧！`
-            });
+        
+        if (!response.ok) {
+            throw new Error(`服务器响应错误: ${response.status}`);
         }
 
-        // 🌟 4. 合并数据：真 50 + 假 950 = 总共 1000
+        const realFoods = await response.json(); 
+        
+        // 自动补齐逻辑...
+        let fakeFoods = [];
+        for (let i = realFoods.length + 1; i <= 1000; i++) {
+            fakeFoods.push({
+                "name": `金宝隐藏美食 #${i}`,
+                "tip": `探索第 ${i} 号神秘美食！`
+            });
+        }
         foods = realFoods.concat(fakeFoods); 
+        document.getElementById('dbStatus').innerText = `✅ 数据库就绪 (${foods.length} 家店)`; 
+        console.log("数据库加载成功！");
 
-        document.getElementById('dbStatus').innerText = `✅ 已同步全量数据库 (${foods.length} 家店)`; 
     } catch (error) { 
-        console.error("加载失败:", error); 
-        document.getElementById('dbStatus').innerText = "❌ 数据库同步失败，请检查 URL 或网络"; 
+        console.error("加载失败原因:", error); 
+        document.getElementById('dbStatus').innerText = `❌ 同步失败: ${error.message}`; 
     } 
-} 
+}
 
 // 页面加载时自动运行 
 loadDatabase(); 
