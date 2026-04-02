@@ -2,15 +2,37 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>金宝美食猎人 Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>金宝美食猎人 Pro - 导航增强版</title>
     <style>
         body { font-family: sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px; }
         #foodName { font-size: 2rem; color: #ff4757; font-weight: bold; margin: 20px 0; }
-        #foodTip { color: #747d8c; margin-bottom: 20px; min-height: 40px; }
-        .main-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
-        .main-btn:disabled { background: #ccc; }
+        #foodTip { color: #747d8c; margin-bottom: 20px; min-height: 40px; line-height: 1.5; }
+        .main-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: 0.3s; }
+        .main-btn:disabled { background: #ccc; cursor: not-allowed; }
         #dbStatus { font-size: 0.8rem; color: #999; margin-bottom: 10px; }
+
+        /* 📍 导航按钮的专属样式 - 这里是正确位置 */
+        .map-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 12px 25px;
+            background-color: #4285F4; /* Google Blue */
+            color: white !important;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+            transition: all 0.3s ease;
+        }
+        .map-link:hover {
+            background-color: #357ae8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+        }
+        .map-link:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
@@ -25,7 +47,7 @@
 
 <script>
     let foods = []; 
-    // 🌟 确保这是你真实的路径
+    // 🌟 自动获取最新数据
     const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + new Date().getTime(); 
 
     async function loadDatabase() { 
@@ -34,7 +56,7 @@
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const realFoods = await response.json(); 
             
-            // 自动补齐 1000 条
+            // 自动补齐 1000 条逻辑
             let fakeFoods = [];
             for (let i = realFoods.length + 1; i <= 1000; i++) {
                 fakeFoods.push({
@@ -47,8 +69,7 @@
             document.getElementById('pickBtn').disabled = false;
         } catch (error) { 
             document.getElementById('dbStatus').innerText = `❌ 同步失败: ${error.message}`; 
-            // 失败保底逻辑
-            foods = [{"name": "加载失败", "tip": "请检查 GitHub 路径是否正确"}];
+            foods = [{"name": "加载失败", "tip": "请检查路径或 JSON 格式"}];
         } 
     } 
 
@@ -58,40 +79,37 @@
         const nameEl = document.getElementById('foodName'); 
         const tipEl = document.getElementById('foodTip'); 
         const btn = document.getElementById('pickBtn'); 
+        
         btn.disabled = true; 
+        btn.innerText = "挑选中心跳中...";
         let count = 0; 
+
         const timer = setInterval(() => { 
             const randomTemp = foods[Math.floor(Math.random() * foods.length)]; 
             nameEl.innerText = randomTemp.name; 
             count++; 
+
             if (count > 20) { 
-                // ... 在 startRolling 函数内部 ...
+                clearInterval(timer); 
+                
+                // 抽取最终结果
+                const final = foods[Math.floor(Math.random() * foods.length)];
+                nameEl.innerText = final.name;
+                
+                // 生成 Google Maps 导航链接
+                // 记得这里加上了 Kampar 关键词增强搜索准确度
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
 
-clearInterval(timer); // 停止滚动
-isRolling = false;
-btn.innerText = "帮我决定";
+                // 更新 Tip 区域并加入导航按钮
+                tipEl.innerHTML = `
+                    <p>💡 ${final.tip}</p>
+                    <a href="${mapUrl}" target="_blank" class="map-link">
+                       📍 开启 Google Maps 导航
+                    </a>
+                `;
 
-// 1. 获取最终选中的那家店
-const final = foodData[currentIndex];
-
-// 2. 更新显示内容
-resultEl.innerText = final.name;
-
-// 3. 动态生成导航链接 (重点改进)
-const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
-
-// 4. 更新 Tip 区域，加入点击导航的按钮
-tipEl.innerHTML = `
-    <div style="margin-top: 10px;">
-        <p>💡 ${final.tip}</p>
-        <a href="${mapUrl}" target="_blank" 
-           style="display: inline-block; margin-top: 15px; padding: 10px 20px; 
-                  background-color: #4285F4; color: white; border-radius: 5px; 
-                  text-decoration: none; font-weight: bold;">
-           📍 开启 Google Maps 导航
-        </a>
-    </div>
-`;
+                btn.disabled = false;
+                btn.innerText = "再抽一次";
             } 
         }, 60); 
     }
