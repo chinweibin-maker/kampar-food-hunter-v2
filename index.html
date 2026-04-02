@@ -142,7 +142,7 @@
         const btn = document.getElementById('pickBtn');
 
         nameEl.innerText = final.name;
-        const mapUrl = `http://googleusercontent.com/maps.google.com/5{encodeURIComponent(final.name + " Kampar")}`;
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
 
         tipEl.innerHTML = `
             <div>💡 ${final.tip}</div>
