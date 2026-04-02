@@ -3,43 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>金宝美食猎人 Pro - 导航增强版</title>
+    <title>金宝美食猎人 Pro</title>
     <style>
         body { font-family: sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
         .container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 350px; }
-        #foodName { font-size: 2rem; color: #ff4757; font-weight: bold; margin: 20px 0; }
-        #foodTip { color: #747d8c; margin-bottom: 20px; min-height: 40px; line-height: 1.5; }
+        #foodName { font-size: 1.8rem; color: #ff4757; font-weight: bold; margin: 20px 0; min-height: 80px; display: flex; align-items: center; justify-content: center; }
+        #foodTip { color: #747d8c; margin-bottom: 20px; min-height: 60px; font-size: 0.95rem; }
         .main-btn { width: 100%; padding: 15px; background: #ff4757; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: 0.3s; }
         .main-btn:disabled { background: #ccc; cursor: not-allowed; }
-        #dbStatus { font-size: 0.8rem; color: #999; margin-bottom: 10px; }
-
-        /* 📍 导航按钮的专属样式 - 这里是正确位置 */
+        #dbStatus { font-size: 0.75rem; color: #2ecc71; margin-bottom: 10px; font-weight: bold; }
+        
         .map-link {
             display: inline-block;
             margin-top: 15px;
-            padding: 12px 25px;
-            background-color: #4285F4; /* Google Blue */
+            padding: 10px 20px;
+            background-color: #4285F4;
             color: white !important;
             border-radius: 50px;
             text-decoration: none;
             font-weight: bold;
-            font-size: 0.9rem;
-            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
-            transition: all 0.3s ease;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.3);
         }
-        .map-link:hover {
-            background-color: #357ae8;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
-        }
-        .map-link:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🍜 Kampar Hunter</h1>
-    <div id="dbStatus">正在加载 GitHub 数据库...</div>
+    <div id="dbStatus">正在连接云端数据库...</div>
     <div id="foodName">准备好了吗？</div>
     <div id="foodTip">点击按钮开始抽奖</div>
     <button class="main-btn" id="pickBtn" onclick="startRolling()" disabled>帮我决定！</button>
@@ -47,7 +39,6 @@
 
 <script>
     let foods = []; 
-    // 🌟 自动获取最新数据
     const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + new Date().getTime(); 
 
     async function loadDatabase() { 
@@ -56,7 +47,7 @@
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const realFoods = await response.json(); 
             
-            // 自动补齐 1000 条逻辑
+            // 自动补齐 1000 条
             let fakeFoods = [];
             for (let i = realFoods.length + 1; i <= 1000; i++) {
                 fakeFoods.push({
@@ -68,8 +59,8 @@
             document.getElementById('dbStatus').innerText = `✅ 数据库就绪 (${foods.length} 家店)`; 
             document.getElementById('pickBtn').disabled = false;
         } catch (error) { 
-            document.getElementById('dbStatus').innerText = `❌ 同步失败: ${error.message}`; 
-            foods = [{"name": "加载失败", "tip": "请检查路径或 JSON 格式"}];
+            document.getElementById('dbStatus').innerText = `❌ 加载失败: ${error.message}`; 
+            document.getElementById('foodTip').innerText = "请检查 data.json 格式或 GitHub 链接。";
         } 
     } 
 
@@ -80,34 +71,35 @@
         const tipEl = document.getElementById('foodTip'); 
         const btn = document.getElementById('pickBtn'); 
         
+        // 1. 锁定按钮，清空旧 tip
         btn.disabled = true; 
-        btn.innerText = "挑选中心跳中...";
-        let count = 0; 
+        btn.innerText = "正在挑选...";
+        tipEl.innerHTML = "正在全城搜索美食...";
 
+        let count = 0; 
         const timer = setInterval(() => { 
             const randomTemp = foods[Math.floor(Math.random() * foods.length)]; 
             nameEl.innerText = randomTemp.name; 
             count++; 
 
-            if (count > 20) { 
+            if (count > 25) { // 滚动 25 次后停止
                 clearInterval(timer); 
                 
-                // 抽取最终结果
+                // 2. 确定最终美食
                 const final = foods[Math.floor(Math.random() * foods.length)];
                 nameEl.innerText = final.name;
                 
-                // 生成 Google Maps 导航链接
-                // 记得这里加上了 Kampar 关键词增强搜索准确度
-                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
+                // 3. 生成导航链接
+                const mapSearch = encodeURIComponent(final.name + " Kampar");
+                const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapSearch}`;
 
-                // 更新 Tip 区域并加入导航按钮
+                // 4. 显示 Tip 和导航按钮
                 tipEl.innerHTML = `
-                    <p>💡 ${final.tip}</p>
-                    <a href="${mapUrl}" target="_blank" class="map-link">
-                       📍 开启 Google Maps 导航
-                    </a>
+                    <div>💡 ${final.tip}</div>
+                    <a href="${mapUrl}" target="_blank" class="map-link">📍 开启导航</a>
                 `;
 
+                // 5. 恢复按钮
                 btn.disabled = false;
                 btn.innerText = "再抽一次";
             } 
