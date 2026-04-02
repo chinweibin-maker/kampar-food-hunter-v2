@@ -65,11 +65,33 @@
             nameEl.innerText = randomTemp.name; 
             count++; 
             if (count > 20) { 
-                clearInterval(timer); 
-                const final = foods[Math.floor(Math.random() * foods.length)]; 
-                nameEl.innerText = final.name; 
-                tipEl.innerText = "💡 " + final.tip; 
-                btn.disabled = false; 
+                // ... 在 startRolling 函数内部 ...
+
+clearInterval(timer); // 停止滚动
+isRolling = false;
+btn.innerText = "帮我决定";
+
+// 1. 获取最终选中的那家店
+const final = foodData[currentIndex];
+
+// 2. 更新显示内容
+resultEl.innerText = final.name;
+
+// 3. 动态生成导航链接 (重点改进)
+const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
+
+// 4. 更新 Tip 区域，加入点击导航的按钮
+tipEl.innerHTML = `
+    <div style="margin-top: 10px;">
+        <p>💡 ${final.tip}</p>
+        <a href="${mapUrl}" target="_blank" 
+           style="display: inline-block; margin-top: 15px; padding: 10px 20px; 
+                  background-color: #4285F4; color: white; border-radius: 5px; 
+                  text-decoration: none; font-weight: bold;">
+           📍 开启 Google Maps 导航
+        </a>
+    </div>
+`;
             } 
         }, 60); 
     }
