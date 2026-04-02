@@ -3,37 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>金宝美食猎人 Pro</title>
-    <meta name="theme-color" content="#ff4757">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3170/3170733.png">
-    
+    <title>金宝美食猎人 Pro - 修复版</title>
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --google: #4285F4; --success: #2ecc71; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; overflow: hidden; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f1f2f6; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         .container { background: white; padding: 25px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 380px; }
-        
         #dbStatus { font-size: 0.7rem; color: var(--success); margin-bottom: 10px; font-weight: bold; }
-        
-        /* 分类筛选器 */
         .filter-group { display: flex; justify-content: center; gap: 6px; margin-bottom: 15px; flex-wrap: wrap; }
         .filter-btn { padding: 6px 12px; border: 1px solid #eee; background: #f8f9fa; border-radius: 15px; cursor: pointer; font-size: 0.75rem; transition: 0.2s; }
         .filter-btn.active { background: var(--secondary); color: white; border-color: var(--secondary); }
-
-        /* 展示核心 */
         .display-box { background: #fffafa; border: 2px dashed #ffeaea; border-radius: 20px; padding: 20px; margin-bottom: 20px; min-height: 180px; display: flex; flex-direction: column; justify-content: center; }
         #foodName { font-size: 1.8rem; color: var(--primary); font-weight: 900; margin-bottom: 10px; }
         #foodTip { color: #747d8c; font-size: 0.85rem; min-height: 3rem; line-height: 1.4; }
-
-        /* 按钮与动作 */
         .main-btn { width: 100%; padding: 18px; background: var(--primary); color: white; border: none; border-radius: 15px; cursor: pointer; font-size: 1.2rem; font-weight: bold; box-shadow: 0 8px 20px rgba(255, 71, 87, 0.3); transition: 0.3s; }
         .main-btn:disabled { background: #ccc; box-shadow: none; }
-        
         .action-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
         .map-link { flex: 1; padding: 12px; background: var(--google); color: white !important; border-radius: 12px; text-decoration: none; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; }
-        
-        /* 历史记录 */
         .history-section { margin-top: 25px; text-align: left; border-top: 1px solid #f1f2f6; padding-top: 15px; }
-        .history-title { font-size: 0.75rem; color: #a1a1a1; margin-bottom: 8px; font-weight: bold; text-transform: uppercase; }
         .history-item { font-size: 0.8rem; padding: 6px 0; color: #57606f; border-bottom: 1px solid #f9f9f9; display: flex; justify-content: space-between; }
         .shake-hint { font-size: 0.65rem; color: #bdc3c7; margin-top: 10px; }
     </style>
@@ -41,67 +27,56 @@
 <body>
 
 <div class="container">
-    <div id="dbStatus">正在加载千条美食...</div>
+    <div id="dbStatus">正在加载...</div>
     <h1>🍜 Kampar Hunter</h1>
-
     <div class="filter-group">
         <button class="filter-btn active" onclick="setFilter('全部', this)">全部</button>
         <button class="filter-btn" onclick="setFilter('老街', this)">老街</button>
         <button class="filter-btn" onclick="setFilter('新街', this)">新街</button>
         <button class="filter-btn" onclick="setFilter('Westlake', this)">宿舍区</button>
     </div>
-
     <div class="display-box">
         <div id="foodName">Ready?</div>
-        <div id="foodTip">首次点击按钮将激活“摇一摇”</div>
+        <div id="foodTip">初次使用请先点按钮激活授权</div>
     </div>
-
     <button class="main-btn" id="pickBtn" onclick="handleMainClick()" disabled>帮我决定！</button>
-    <div class="shake-hint">📱 支持 iOS/Android 摇一摇抽奖</div>
-
+    <div class="shake-hint">📱 摇晃手机触发 (仅限授权后)</div>
     <div class="history-section">
-        <div class="history-title">🕒 Recent Footprints</div>
-        <ul id="historyList" style="list-style:none; padding:0; margin:0;">
-            <li class="history-item">暂无记录</li>
-        </ul>
+        <ul id="historyList" style="list-style:none; padding:0; margin:0;"><li class="history-item">暂无记录</li></ul>
     </div>
 </div>
 
 <script>
     let allFoods = [];
     let filteredFoods = [];
-    let isRolling = false;
+    let isRolling = false; // 🔒 核心锁
     let hasShakingPermission = false;
 
-    // 🎵 音效
     const rollSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
     const winSfx = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
     rollSfx.volume = 0.2; winSfx.volume = 0.4;
 
-    // 1. 初始化数据库
     async function init() {
         const dataUrl = 'https://raw.githubusercontent.com/chinweibin-maker/kampar-food-hunter-v2/main/data.json?t=' + Date.now();
         try {
             const resp = await fetch(dataUrl);
             const realData = await resp.json();
-            // 补齐 1000 条
             let fake = [];
             for (let i = realData.length + 1; i <= 1000; i++) {
-                fake.push({ "name": `金宝隐藏美食 #${i}`, "tip": `探索第 ${i} 号神秘店面！` });
+                fake.push({ "name": `隐藏美食 #${i}`, "tip": `探索金宝第 ${i} 号秘密！` });
             }
             allFoods = realData.concat(fake);
             filteredFoods = [...allFoods];
-            document.getElementById('dbStatus').innerText = `✅ 1000+ 离线数据库就绪`;
+            document.getElementById('dbStatus').innerText = `✅ 1000+ 数据库就绪`;
             document.getElementById('pickBtn').disabled = false;
             updateHistoryUI();
-        } catch (e) {
-            document.getElementById('dbStatus').innerText = `⚠️ 离线运行中`;
-        }
+        } catch (e) { document.getElementById('dbStatus').innerText = `⚠️ 离线运行`; }
     }
 
-    // 2. 按钮主逻辑（包含 iOS 授权）
     async function handleMainClick() {
-        // 🍎 iOS 13+ 传感器授权请求
+        if (isRolling) return; // 正在转的时候点击无效
+        
+        // 授权逻辑
         if (!hasShakingPermission && typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
             try {
                 const permission = await DeviceMotionEvent.requestPermission();
@@ -109,31 +84,31 @@
                     hasShakingPermission = true;
                     initShakeListener();
                 }
-            } catch (e) { console.error("Permission denied"); }
+            } catch (e) { alert("授权失败"); }
         } else if (!hasShakingPermission) {
-            initShakeListener(); // 安卓直接尝试开启
+            initShakeListener();
             hasShakingPermission = true;
         }
-
         startRolling();
     }
 
-    // 3. 摇一摇监听
     function initShakeListener() {
         let lastUpdate = 0;
         let lastX, lastY, lastZ;
-        let threshold = 15;
+        let threshold = 25; // 🚀 提高阈值，防止误触发
 
         window.addEventListener('devicemotion', (e) => {
+            if (isRolling) return; // 🔒 关键：如果正在转动，直接无视传感器的信号
+
             let curTime = Date.now();
             if ((curTime - lastUpdate) > 100) {
                 let diffTime = curTime - lastUpdate;
                 lastUpdate = curTime;
                 let acc = e.accelerationIncludingGravity;
-                if(!acc.x) return;
+                if(!acc || !acc.x) return;
+                
                 let speed = Math.abs(acc.x + acc.y + acc.z - lastX - lastY - lastZ) / diffTime * 10000;
-
-                if (speed > threshold && !isRolling && !document.getElementById('pickBtn').disabled) {
+                if (speed > threshold) {
                     startRolling();
                 }
                 lastX = acc.x; lastY = acc.y; lastZ = acc.z;
@@ -141,15 +116,18 @@
         });
     }
 
-    // 4. 核心滚动逻辑
     function startRolling() {
         if (isRolling) return;
-        isRolling = true;
+        isRolling = true; // 🔒 开启锁定
+        
         const btn = document.getElementById('pickBtn');
         const nameEl = document.getElementById('foodName');
         const tipEl = document.getElementById('foodTip');
         
         btn.disabled = true;
+        btn.innerText = "挑选中心跳中...";
+        tipEl.innerHTML = "正在全城搜索...";
+
         let speed = 60; 
         let times = 0;
         let maxTimes = 25 + Math.floor(Math.random() * 10);
@@ -177,20 +155,21 @@
         const btn = document.getElementById('pickBtn');
 
         nameEl.innerText = final.name;
-        // 修正后的 Google Maps 链接，避免 404
-        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(final.name + " Kampar")}`;
+        const mapUrl = `http://googleusercontent.com/maps.google.com/9{encodeURIComponent(final.name + " Kampar")}`;
 
         tipEl.innerHTML = `
             <div>💡 ${final.tip}</div>
             <div class="action-group">
-                <a href="${mapUrl}" target="_blank" class="map-link">📍 导航 (Google Maps)</a>
+                <a href="${mapUrl}" target="_blank" class="map-link">📍 开启导航</a>
             </div>
         `;
 
         saveToHistory(final.name);
-        isRolling = false;
         btn.disabled = false;
-        btn.innerText = "再摇一次";
+        btn.innerText = "再抽一次";
+        
+        // 延迟一秒解锁，防止抽完奖瞬间因为手抖又触发一次
+        setTimeout(() => { isRolling = false; }, 1000); 
     }
 
     function setFilter(tag, btn) {
@@ -198,7 +177,7 @@
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         filteredFoods = tag === '全部' ? [...allFoods] : allFoods.filter(f => f.name.includes(tag));
-        document.getElementById('foodTip').innerText = `已切换至：${tag} (${filteredFoods.length} 家)`;
+        document.getElementById('foodTip').innerText = `已切换：${tag} (${filteredFoods.length} 家)`;
     }
 
     function saveToHistory(name) {
@@ -217,6 +196,5 @@
 
     init();
 </script>
-
 </body>
 </html>
